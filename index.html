@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listening Lab Analytics | Rishihood University</title>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --rishihood-red: #B20E38;
+            --narangi: #CC5C2F;
+            --deep-grey: #333A3D;
+            --white: #FFFFFF;
+            --navy: #104477;
+            --light-grey: #F5F5F5;
+            --border-color: #E0E0E0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            color: var(--deep-grey);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--rishihood-red) 0%, #8B0A2C 100%);
+            color: var(--white);
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(178, 14, 56, 0.3);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-10%, -10%) scale(1.1); }
+        }
+
+        h1 {
+            font-family: 'EB Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 400;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .semester-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .semester-btn {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            padding: 1rem 2.5rem;
+            border: 2px solid var(--rishihood-red);
+            background: var(--white);
+            color: var(--rishihood-red);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .semester-btn:hover {
+            background: var(--rishihood-red);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(178, 14, 56, 0.3);
+        }
+
+        .semester-btn.active {
+            background: var(--rishihood-red);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(178, 14, 56, 0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--rishihood-red);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--narangi) 0%, transparent 100%);
+            opacity: 0.1;
+            border-radius: 0 12px 0 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .stat-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--navy);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-family: 'EB Garamond', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--rishihood-red);
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-subtitle {
+            font-size: 0.85rem;
+            color: var(--deep-grey);
+            opacity: 0.7;
+        }
+
+        .chart-section {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--rishihood-red);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 3px solid var(--narangi);
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .comparison-section {
+            background: linear-gradient(135deg, var(--navy) 0%, #0a3558 100%);
+            color: var(--white);
+            padding: 3rem;
+            border-radius: 12px;
+            margin: 3rem 0;
+            box-shadow: 0 8px 30px rgba(16, 68, 119, 0.3);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .comparison-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .comparison-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .comparison-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .comparison-value {
+            font-family: 'EB Garamond', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison-change {
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        .change-positive {
+            color: #4ade80;
+        }
+
+        .change-negative {
+            color: #f87171;
+        }
+
+        .counsellor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .counsellor-card {
+            background: linear-gradient(135deg, var(--white) 0%, #f9f9f9 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-top: 4px solid var(--narangi);
+            transition: all 0.3s ease;
+        }
+
+        .counsellor-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .counsellor-name {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--rishihood-red);
+            margin-bottom: 1rem;
+        }
+
+        .counsellor-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .counsellor-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .counsellor-stat-label {
+            font-size: 0.9rem;
+            color: var(--navy);
+            font-weight: 500;
+        }
+
+        .counsellor-stat-value {
+            font-weight: 700;
+            color: var(--rishihood-red);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            color: var(--deep-grey);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .semester-toggle {
+                flex-direction: column;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Listening Lab Analytics</h1>
+        <p class="subtitle">Comprehensive Session Analysis | Rishihood University</p>
+    </div>
+
+    <div class="semester-toggle">
+        <button class="semester-btn active" onclick="showSemester('diwali')">Diwali Semester</button>
+        <button class="semester-btn" onclick="showSemester('holi')">Holi Semester</button>
+        <button class="semester-btn" onclick="showSemester('comparison')">Comparison</button>
+    </div>
+
+    <div class="container">
+        <!-- Diwali Semester Data -->
+        <div id="diwali-data" class="semester-content">
+            <div class="stats-grid fade-in">
+                <div class="stat-card">
+                    <div class="stat-label">Total Sessions</div>
+                    <div class="stat-value">192</div>
+                    <div class="stat-subtitle">Completed sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Hours</div>
+                    <div class="stat-value">148.3</div>
+                    <div class="stat-subtitle">Counselling hours delivered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Students Served</div>
+                    <div class="stat-value">68</div>
+                    <div class="stat-subtitle">Unique students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completion Rate</div>
+                    <div class="stat-value">81.7%</div>
+                    <div class="stat-subtitle">192 done / 235 total</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-container">
+                    <div class="chart-title">Sessions by Counsellor</div>
+                    <canvas id="diwaliCounsellorChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Sessions by Program</div>
+                    <canvas id="diwaliProgramChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-container">
+                    <div class="chart-title">Session Mode Distribution</div>
+                    <canvas id="diwaliModeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Monthly Session Trend</div>
+                    <canvas id="diwaliTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2 class="section-title">Counsellor Performance - Diwali Semester</h2>
+                <div class="counsellor-grid" id="diwaliCounsellors"></div>
+            </div>
+        </div>
+
+        <!-- Holi Semester Data -->
+        <div id="holi-data" class="semester-content" style="display: none;">
+            <div class="stats-grid fade-in">
+                <div class="stat-card">
+                    <div class="stat-label">Total Sessions</div>
+                    <div class="stat-value">167</div>
+                    <div class="stat-subtitle">Completed in just 2 months!</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Hours</div>
+                    <div class="stat-value">125.7</div>
+                    <div class="stat-subtitle">In half the semester time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Students Served</div>
+                    <div class="stat-value">76</div>
+                    <div class="stat-subtitle">Unique students reached</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completion Rate</div>
+                    <div class="stat-value">89.8%</div>
+                    <div class="stat-subtitle">167 done / 186 total</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-container">
+                    <div class="chart-title">Sessions by Counsellor</div>
+                    <canvas id="holiCounsellorChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Sessions by Program</div>
+                    <canvas id="holiProgramChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-container">
+                    <div class="chart-title">Session Mode Distribution</div>
+                    <canvas id="holiModeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Monthly Session Trend</div>
+                    <canvas id="holiTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2 class="section-title">Counsellor Performance - Holi Semester</h2>
+                <div class="counsellor-grid" id="holiCounsellors"></div>
+            </div>
+        </div>
+
+        <!-- Comparison View -->
+        <div id="comparison-data" class="semester-content" style="display: none;">
+            <div class="comparison-section fade-in">
+                <h2 class="section-title" style="color: var(--white); border-color: var(--narangi);">Semester Comparison: Remarkable Achievement in Half the Time!</h2>
+                <p style="text-align: center; margin-bottom: 2rem; font-size: 1.1rem; opacity: 0.95;">
+                    🎯 Holi Semester (Jan-Feb): Only 2 months completed vs Diwali Semester's 4 months (Sept-Dec)
+                </p>
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <div class="comparison-label">Total Sessions</div>
+                        <div class="comparison-value">192 → 167</div>
+                        <div class="comparison-change" style="color: #fbbf24;">⚡ 87% achieved in 50% time</div>
+                    </div>
+                    <div class="comparison-card">
+                        <div class="comparison-label">Total Hours</div>
+                        <div class="comparison-value">148.3 → 125.7</div>
+                        <div class="comparison-change" style="color: #fbbf24;">⚡ 85% achieved in 50% time</div>
+                    </div>
+                    <div class="comparison-card">
+                        <div class="comparison-label">Students Served</div>
+                        <div class="comparison-value">68 → 76</div>
+                        <div class="comparison-change change-positive">↑ 11.8% MORE students!</div>
+                    </div>
+                    <div class="comparison-card">
+                        <div class="comparison-label">Completion Rate</div>
+                        <div class="comparison-value">81.7% → 89.8%</div>
+                        <div class="comparison-change change-positive">↑ 8.1% improvement</div>
+                    </div>
+                    <div class="comparison-card">
+                        <div class="comparison-label">Monthly Average</div>
+                        <div class="comparison-value">48 → 83.5</div>
+                        <div class="comparison-change change-positive">↑ 74% higher efficiency</div>
+                    </div>
+                    <div class="comparison-card">
+                        <div class="comparison-label">Hours per Month</div>
+                        <div class="comparison-value">37.1 → 62.9</div>
+                        <div class="comparison-change change-positive">↑ 70% more productive</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-container">
+                    <div class="chart-title">Sessions Comparison by Counsellor</div>
+                    <canvas id="comparisonCounsellorChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Program Distribution Comparison</div>
+                    <canvas id="comparisonProgramChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container" style="height: 500px; margin-top: 2rem;">
+                <div class="chart-title">Hours Per Counsellor - Semester Comparison</div>
+                <canvas id="comparisonHoursChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Listening Lab Analytics Dashboard | Academic Year 2025-26 | Rishihood University</p>
+    </div>
+
+    <script>
+        // Data for Diwali Semester
+        const diwaliData = {
+            counsellors: {
+                'Lisha': { sessions: 56, hours: 43.8, organization: 'Cognizavest' },
+                'Khushi': { sessions: 48, hours: 34.8, organization: 'Cognizavest' },
+                'Dr. Sakshi (C)': { sessions: 3, hours: 2.5, organization: 'Cognizavest' },
+                'Richa Goenka': { sessions: 14, hours: 15.8, organization: 'Rishihood' },
+                'Bhanavi': { sessions: 43, hours: 31.9, organization: 'Rishihood' },
+                'Dr. Sakshi Vermani': { sessions: 28, hours: 19.5, organization: 'Rishihood' }
+            },
+            programs: {
+                'Psychology': 122,
+                'B.Tech': 26,
+                'B.Des': 33,
+                'BBA': 11
+            },
+            modes: {
+                'Offline': 145,
+                'Online': 47
+            },
+            monthly: {
+                'Sept': 32,
+                'Oct': 28,
+                'Nov': 51,
+                'Dec': 81
+            }
+        };
+
+        // Data for Holi Semester (Jan-Feb 2026 - Only 2 months!)
+        const holiData = {
+            counsellors: {
+                'Lisha': { sessions: 42, hours: 31.5, organization: 'Cognizavest' },
+                'Khushi': { sessions: 24, hours: 17.3, organization: 'Cognizavest' },
+                'Dr. Sakshi (C)': { sessions: 13, hours: 10.3, organization: 'Cognizavest' },
+                'Richa Goenka': { sessions: 11, hours: 11.7, organization: 'Rishihood' },
+                'Bhanavi': { sessions: 27, hours: 19.8, organization: 'Rishihood' },
+                'Dr. Sakshi Vermani': { sessions: 24, hours: 11.3, organization: 'Rishihood' },
+                'Paroksh Dada': { sessions: 19, hours: 10.0, organization: 'Rishihood' },
+                'Ashita Sharma': { sessions: 17, hours: 13.8, organization: 'Rishihood' }
+            },
+            programs: {
+                'Psychology': 112,
+                'B.Tech CSAI': 32,
+                'B.Des': 7,
+                'BBA': 9,
+                'B.Tech CSDS': 3,
+                'B.Tech': 4
+            },
+            modes: {
+                'Offline': 149,
+                'Online': 18
+            },
+            monthly: {
+                'Jan': 129,
+                'Feb': 38
+            }
+        };
+
+        // Chart configurations
+        const chartColors = {
+            primary: '#B20E38',
+            secondary: '#CC5C2F',
+            navy: '#104477',
+            grey: '#333A3D',
+            accent1: '#E91E63',
+            accent2: '#FF6B6B',
+            accent3: '#4ECDC4',
+            accent4: '#95E1D3'
+        };
+
+        Chart.defaults.font.family = "'Montserrat', sans-serif";
+        Chart.defaults.color = '#333A3D';
+
+        let charts = {};
+
+        function createDoughnutChart(ctx, data, labels, title) {
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            chartColors.primary,
+                            chartColors.secondary,
+                            chartColors.navy,
+                            chartColors.accent1,
+                            chartColors.accent2,
+                            chartColors.accent3,
+                            chartColors.accent4
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 11,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createBarChart(ctx, data, labels, title) {
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: title,
+                        data: data,
+                        backgroundColor: chartColors.primary,
+                        borderColor: chartColors.primary,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createLineChart(ctx, data, labels, title) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: title,
+                        data: data,
+                        borderColor: chartColors.navy,
+                        backgroundColor: 'rgba(16, 68, 119, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: chartColors.primary,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createGroupedBarChart(ctx, datasets, labels) {
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderCounsellorCards(data, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            Object.entries(data.counsellors).forEach(([name, info]) => {
+                const card = document.createElement('div');
+                card.className = 'counsellor-card';
+                card.innerHTML = `
+                    <div class="counsellor-name">${name}</div>
+                    <div class="counsellor-stats">
+                        <div class="counsellor-stat">
+                            <span class="counsellor-stat-label">Organization:</span>
+                            <span class="counsellor-stat-value">${info.organization}</span>
+                        </div>
+                        <div class="counsellor-stat">
+                            <span class="counsellor-stat-label">Sessions:</span>
+                            <span class="counsellor-stat-value">${info.sessions}</span>
+                        </div>
+                        <div class="counsellor-stat">
+                            <span class="counsellor-stat-label">Total Hours:</span>
+                            <span class="counsellor-stat-value">${info.hours}</span>
+                        </div>
+                        <div class="counsellor-stat">
+                            <span class="counsellor-stat-label">Avg Duration:</span>
+                            <span class="counsellor-stat-value">${(info.hours / info.sessions * 60).toFixed(0)} mins</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function initDiwaliCharts() {
+            // Counsellor chart
+            const counsellorNames = Object.keys(diwaliData.counsellors);
+            const counsellorSessions = counsellorNames.map(name => diwaliData.counsellors[name].sessions);
+            charts.diwaliCounsellor = createBarChart(
+                document.getElementById('diwaliCounsellorChart'),
+                counsellorSessions,
+                counsellorNames,
+                'Sessions'
+            );
+
+            // Program chart
+            charts.diwaliProgram = createDoughnutChart(
+                document.getElementById('diwaliProgramChart'),
+                Object.values(diwaliData.programs),
+                Object.keys(diwaliData.programs),
+                'Programs'
+            );
+
+            // Mode chart
+            charts.diwaliMode = createDoughnutChart(
+                document.getElementById('diwaliModeChart'),
+                Object.values(diwaliData.modes),
+                Object.keys(diwaliData.modes),
+                'Modes'
+            );
+
+            // Trend chart
+            charts.diwaliTrend = createLineChart(
+                document.getElementById('diwaliTrendChart'),
+                Object.values(diwaliData.monthly),
+                Object.keys(diwaliData.monthly),
+                'Monthly Sessions'
+            );
+
+            renderCounsellorCards(diwaliData, 'diwaliCounsellors');
+        }
+
+        function initHoliCharts() {
+            // Counsellor chart
+            const counsellorNames = Object.keys(holiData.counsellors);
+            const counsellorSessions = counsellorNames.map(name => holiData.counsellors[name].sessions);
+            charts.holiCounsellor = createBarChart(
+                document.getElementById('holiCounsellorChart'),
+                counsellorSessions,
+                counsellorNames,
+                'Sessions'
+            );
+
+            // Program chart
+            charts.holiProgram = createDoughnutChart(
+                document.getElementById('holiProgramChart'),
+                Object.values(holiData.programs),
+                Object.keys(holiData.programs),
+                'Programs'
+            );
+
+            // Mode chart
+            charts.holiMode = createDoughnutChart(
+                document.getElementById('holiModeChart'),
+                Object.values(holiData.modes),
+                Object.keys(holiData.modes),
+                'Modes'
+            );
+
+            // Trend chart
+            charts.holiTrend = createLineChart(
+                document.getElementById('holiTrendChart'),
+                Object.values(holiData.monthly),
+                Object.keys(holiData.monthly),
+                'Monthly Sessions'
+            );
+
+            renderCounsellorCards(holiData, 'holiCounsellors');
+        }
+
+        function initComparisonCharts() {
+            // Get all counsellors from both semesters
+            const allCounsellors = new Set([
+                ...Object.keys(diwaliData.counsellors),
+                ...Object.keys(holiData.counsellors)
+            ]);
+            const counsellorLabels = Array.from(allCounsellors);
+
+            const diwaliSessions = counsellorLabels.map(name => 
+                diwaliData.counsellors[name]?.sessions || 0
+            );
+            const holiSessions = counsellorLabels.map(name => 
+                holiData.counsellors[name]?.sessions || 0
+            );
+
+            charts.comparisonCounsellor = createGroupedBarChart(
+                document.getElementById('comparisonCounsellorChart'),
+                [
+                    {
+                        label: 'Diwali Semester',
+                        data: diwaliSessions,
+                        backgroundColor: chartColors.primary,
+                        borderColor: chartColors.primary,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Holi Semester',
+                        data: holiSessions,
+                        backgroundColor: chartColors.navy,
+                        borderColor: chartColors.navy,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ],
+                counsellorLabels
+            );
+
+            // Program comparison
+            const allPrograms = new Set([
+                ...Object.keys(diwaliData.programs),
+                ...Object.keys(holiData.programs)
+            ]);
+            const programLabels = Array.from(allPrograms);
+
+            const diwaliPrograms = programLabels.map(prog => 
+                diwaliData.programs[prog] || 0
+            );
+            const holiPrograms = programLabels.map(prog => 
+                holiData.programs[prog] || 0
+            );
+
+            charts.comparisonProgram = createGroupedBarChart(
+                document.getElementById('comparisonProgramChart'),
+                [
+                    {
+                        label: 'Diwali Semester',
+                        data: diwaliPrograms,
+                        backgroundColor: chartColors.secondary,
+                        borderColor: chartColors.secondary,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Holi Semester',
+                        data: holiPrograms,
+                        backgroundColor: chartColors.accent3,
+                        borderColor: chartColors.accent3,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ],
+                programLabels
+            );
+
+            // Hours comparison
+            const diwaliHours = counsellorLabels.map(name => 
+                diwaliData.counsellors[name]?.hours || 0
+            );
+            const holiHours = counsellorLabels.map(name => 
+                holiData.counsellors[name]?.hours || 0
+            );
+
+            charts.comparisonHours = createGroupedBarChart(
+                document.getElementById('comparisonHoursChart'),
+                [
+                    {
+                        label: 'Diwali Semester (Hours)',
+                        data: diwaliHours,
+                        backgroundColor: chartColors.primary,
+                        borderColor: chartColors.primary,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Holi Semester (Hours)',
+                        data: holiHours,
+                        backgroundColor: chartColors.navy,
+                        borderColor: chartColors.navy,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ],
+                counsellorLabels
+            );
+        }
+
+        function showSemester(semester) {
+            // Update button states
+            document.querySelectorAll('.semester-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Hide all content
+            document.querySelectorAll('.semester-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show selected content
+            if (semester === 'diwali') {
+                document.getElementById('diwali-data').style.display = 'block';
+                if (!charts.diwaliCounsellor) {
+                    setTimeout(initDiwaliCharts, 100);
+                }
+            } else if (semester === 'holi') {
+                document.getElementById('holi-data').style.display = 'block';
+                if (!charts.holiCounsellor) {
+                    setTimeout(initHoliCharts, 100);
+                }
+            } else if (semester === 'comparison') {
+                document.getElementById('comparison-data').style.display = 'block';
+                if (!charts.comparisonCounsellor) {
+                    setTimeout(initComparisonCharts, 100);
+                }
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initDiwaliCharts();
+        });
+    </script>
+</body>
+</html>
